@@ -52,7 +52,7 @@ namespace ignition
               const ignition::math::Color &_color) const;
 
       /// \brief Reset the color value incrementor
-      public: void Reset();
+      public: virtual void Reset();
 
       /// \brief Ogre's pre render update callback
       /// \param[in] _evt Ogre render target event containing information about
@@ -67,34 +67,34 @@ namespace ignition
                   const Ogre::RenderTargetEvent &_evt);
 
       /// \brief Current unique color value
-      private: ignition::math::Color currentColor;
+      protected: ignition::math::Color currentColor;
 
       /// \brief Color dictionary that maps the unique color value to
       /// renderable name
-      private: std::map<unsigned int, std::string> colorDict;
+      protected: std::map<unsigned int, std::string> colorDict;
 
       /// \brief A map of ogre sub item pointer to their original hlms material
-      private: std::map<Ogre::SubItem *, Ogre::HlmsDatablock *> datablockMap;
+      protected: std::map<Ogre::SubItem *, Ogre::HlmsDatablock *> datablockMap;
 
       /// \brief Ogre v1 material consisting of a shader that changes the
       /// appearance of item to use a unique color for mouse picking
-      private: Ogre::MaterialPtr plainMaterial;
+      protected: Ogre::MaterialPtr plainMaterial;
 
       /// \brief Ogre v1 material consisting of a shader that changes the
       /// appearance of item to use a unique color for mouse picking. In
       /// addition, the depth check and depth write properties disabled.
-      private: Ogre::MaterialPtr plainOverlayMaterial;
+      protected: Ogre::MaterialPtr plainOverlayMaterial;
 
       /// \brief Increment unique color value that will be assigned to the
       /// next renderable
-      private: void NextColor();
+      protected: virtual void NextColor();
 
       /// \brief Selection Buffer class that make use of this class for
       /// selecting entitiies
       public: friend class Ogre2SelectionBuffer;
 
       /// \brief Plain material technique
-      private: Ogre2ScenePtr scene;
+      protected: Ogre2ScenePtr scene;
     };
     }
   }

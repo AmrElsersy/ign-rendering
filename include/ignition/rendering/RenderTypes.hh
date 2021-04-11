@@ -80,6 +80,7 @@ namespace ignition
     class RenderTexture;
     class RenderWindow;
     class Scene;
+    class SegmentationCamera;
     class Sensor;
     class ShaderParams;
     class SpotLight;
@@ -108,6 +109,10 @@ namespace ignition
     /// \def ThermalCameraPtr
     /// \brief Shared pointer to ThermalCamera
     typedef shared_ptr<ThermalCamera> ThermalCameraPtr;
+
+    /// \def SegmentationCameraPtr
+    /// \brief Shared pointer to Segmentation Camera
+    typedef shared_ptr<SegmentationCamera> SegmentationCameraPtr;
 
     /// \def GpuRaysPtr
     /// \brief Shared pointer to GpuRays
@@ -216,6 +221,7 @@ namespace ignition
     /// \def RenderWindowPtr
     /// \brief Shared pointer to RenderWindow
     typedef shared_ptr<RenderWindow> RenderWindowPtr;
+
     /// \def ScenePtr
     /// \brief Shared pointer to Scene
     typedef shared_ptr<Scene> ScenePtr;
@@ -362,6 +368,10 @@ namespace ignition
     /// \def const ScenePtr
     /// \brief Shared pointer to const Scene
     typedef shared_ptr<const Scene> ConstScenePtr;
+
+    /// \def const SegmentationCameraPtr
+    /// \brief Shared pointer to const Segmentation Camera
+    typedef shared_ptr<const SegmentationCamera> ConstSegmentationCameraPtr;
 
     /// \def const SensorPtr
     /// \brief Shared pointer to const Sensor

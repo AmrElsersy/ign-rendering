@@ -301,6 +301,15 @@ namespace ignition
       public: virtual DepthCameraPtr CreateDepthCamera(const unsigned int _id,
                   const std::string &_name) override;
 
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera() override;
+
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera(const unsigned int _id) override;
+
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera(const std::string &_name) override;
+
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera(const unsigned int _id,
+                  const std::string &_name) override;
+
       // Documentation inherited.
       public: virtual ThermalCameraPtr CreateThermalCamera() override;
 
@@ -506,6 +515,15 @@ namespace ignition
 
       protected: virtual DepthCameraPtr CreateDepthCameraImpl(unsigned int _id,
                      const std::string &_name) = 0;
+
+      protected: virtual SegmentationCameraPtr CreateSegmentationCameraImpl(
+                     unsigned int _id,
+                     const std::string &_name)
+                  {
+                    ignerr << "Segmentation camera not supported by: "
+                            << this->Engine()->Name() << std::endl;
+                    return SegmentationCameraPtr();
+                  }
 
       /// \brief Implementation for creating a thermal camera.
       /// \param[in] _id Unique id
