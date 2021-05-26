@@ -97,6 +97,14 @@ namespace ignition
       /// and to set image's dims
       public: virtual void CreateRenderTexture();
 
+      /// \brief Set Segmentation Type (Semantic / Instance) 
+      /// \param[in] _type Segmentation Type (Semantic / Instance) 
+      public: void SetSegmentationType(SegmentationType _type);
+
+      /// \brief Set Segmentation Type (Semantic / Instance) 
+      /// \param[in] _type Segmentation Type (Semantic / Instance) 
+      public: void EnableColoredMap(bool _enable);      
+
       /// \brief Set color for background & unlabeled items in the colored map
       /// \param[in] _color Color of background & unlabeled items 
       public: void SetBackgroundColor(math::Color _color);

@@ -47,6 +47,18 @@ namespace ignition
       public: virtual ignition::common::ConnectionPtr ConnectNewSegmentationFrame(
           std::function<void(const uint8_t *, unsigned int, unsigned int,
           unsigned int, const std::string &)>  _subscriber);
+
+      public: virtual void SetSegmentationType(SegmentationType _type);
+
+      public: virtual void EnableColoredMap(bool _enable);      
+
+      public: virtual void SetBackgroundColor(math::Color _color);
+
+      public: virtual void SetBackgroundLabel(int _label);
+
+      public: virtual math::Color BackgroundColor();
+
+      public: virtual int BackgroundLabel();
     };
 
     //////////////////////////////////////////////////
@@ -81,6 +93,44 @@ namespace ignition
           unsigned int, const std::string &)>)
     {
       return nullptr;
+    }
+
+    //////////////////////////////////////////////////
+    template <class T>
+    void BaseSegmentationCamera<T>::SetSegmentationType(SegmentationType)
+    {
+    }
+
+    //////////////////////////////////////////////////
+    template <class T>
+    void BaseSegmentationCamera<T>::EnableColoredMap(bool)
+    {
+    }
+
+    //////////////////////////////////////////////////
+    template <class T>
+    void BaseSegmentationCamera<T>::SetBackgroundColor(math::Color)
+    {
+    }
+
+    //////////////////////////////////////////////////
+    template <class T>
+    void BaseSegmentationCamera<T>::SetBackgroundLabel(int)
+    {
+    }
+
+    //////////////////////////////////////////////////
+    template <class T>
+    math::Color BaseSegmentationCamera<T>::BackgroundColor()
+    {
+      return math::Color();
+    }
+
+    //////////////////////////////////////////////////
+    template <class T>
+    int BaseSegmentationCamera<T>::BackgroundLabel()
+    {
+      return 0;
     }
   }
   }

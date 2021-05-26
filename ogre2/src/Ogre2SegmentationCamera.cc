@@ -30,7 +30,6 @@
 #include "ignition/rendering/ogre2/Ogre2Visual.hh"
 #include "ignition/math/Color.hh"
 
-// #include "stdlib.h"
 using namespace ignition;
 using namespace rendering;
 
@@ -61,22 +60,6 @@ namespace ignition
       public: virtual void postRenderTargetUpdate(
                   const Ogre::RenderTargetEvent &_evt);
 
-      /// \brief Get color for background & unlabeled items in the colored map
-      /// \return Color of background & unlabeled items 
-      public: math::Color BackgroundColor();
-
-      /// \brief Set color for background & unlabeled items in the colored map
-      /// \param[in] _color Color of background & unlabeled items 
-      public: void SetBackgroundColor(math::Color _color);
-
-      /// \brief Set label for background & unlabeled items in the semantic map
-      /// \param[in] _color label of background & unlabeled items 
-      public: void SetBackgroundLabel(int _label);
-
-      /// \brief Set label for background & unlabeled items in the semantic map
-      /// \return label of background & unlabeled items 
-      public: int BackgroundLabel();
-
       /// \brief Convert label of semantic map to a unique color for colored map
       /// \param[in] _label id of the semantic map
       /// \return _color unique color in the colored map for that label
@@ -103,8 +86,17 @@ namespace ignition
       /// \brief Background & unlabeled objects color in the colored map
       private: math::Color backgroundColor;
 
+      /// \brief Segmentation Type (Semantic / Instance)
+      private: SegmentationType type {SegmentationType::Semantic};
+
+      /// \brief True to generate colored map 
+      /// False to generate labels ids map
+      private: bool isColoredMap;
+
       /// \brief Ogre2 Scene 
       private: Ogre2ScenePtr scene;
+
+      friend class Ogre2SegmentationCamera;
     };
     }
   }
@@ -145,30 +137,6 @@ SegmentationMaterialSwitcher::SegmentationMaterialSwitcher(Ogre2ScenePtr _scene)
 /////////////////////////////////////////////////
 SegmentationMaterialSwitcher::~SegmentationMaterialSwitcher()
 {
-}
-
-/////////////////////////////////////////////////
-math::Color SegmentationMaterialSwitcher::BackgroundColor()
-{
-  return this->backgroundColor;
-}
-
-/////////////////////////////////////////////////
-void SegmentationMaterialSwitcher::SetBackgroundColor(math::Color _color)
-{
-  this->backgroundColor = _color;
-}
-
-/////////////////////////////////////////////////
-int SegmentationMaterialSwitcher::BackgroundLabel()
-{
-  return this->backgroundLabel;
-}
-
-/////////////////////////////////////////////////
-void SegmentationMaterialSwitcher::SetBackgroundLabel(int _label)
-{
-  this->backgroundLabel = _label;
 }
 
 /////////////////////////////////////////////////
@@ -240,13 +208,21 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
         Ogre::HlmsDatablock *datablock = subItem->getDatablock();
         this->datablockMap[subItem] = datablock;
 
-        // switch to semantic material
-        // subItem->setCustomParameter(1, Ogre::Vector4(
-        //   label, label, label, 1.0));
-
-        math::Color color = this->LabelToColor(label);
-        subItem->setCustomParameter(1, Ogre::Vector4(
-          color.R(), color.G(), color.B(), 1.0));
+        // Materail Switching
+        if (this->isColoredMap)
+        {
+          // semantic material(each pixel has item's color)
+          math::Color color = this->LabelToColor(label);
+          subItem->setCustomParameter(1, Ogre::Vector4(
+            color.R(), color.G(), color.B(), 1.0));
+        }
+        else 
+        {
+          // labels ids material(each pixel has item's label)
+          float labelColor = label / 255.0;
+          subItem->setCustomParameter(1, Ogre::Vector4(
+            labelColor, labelColor, labelColor, 1.0));
+        }
 
         // check if it's an overlay material by assuming the
         // depth check and depth write properties are off.
@@ -282,15 +258,6 @@ void SegmentationMaterialSwitcher::postRenderTargetUpdate(
     itor.moveNext();
   }
 }
-
-
-
-
-
-
-
-
-
 
 /////////////////////////////////////////////////
 class ignition::rendering::Ogre2SegmentationCameraPrivate
@@ -349,6 +316,9 @@ void Ogre2SegmentationCamera::Init()
   BaseCamera::Init();
   this->CreateCamera();
   this->CreateRenderTexture();
+  
+  this->dataPtr->materialSwitcher = 
+    new SegmentationMaterialSwitcher(this->scene);
 }
 
 /////////////////////////////////////////////////
@@ -406,8 +376,6 @@ void Ogre2SegmentationCamera::PreRender()
 /////////////////////////////////////////////////
 void Ogre2SegmentationCamera::CreateSegmentationTexture()
 {
-  this->dataPtr->materialSwitcher = new SegmentationMaterialSwitcher(this->scene);
-
   // Camera Parameters
   this->ogreCamera->setNearClipDistance(this->NearClipPlane());
   this->ogreCamera->setFarClipDistance(this->FarClipPlane());
@@ -440,7 +408,7 @@ void Ogre2SegmentationCamera::CreateSegmentationTexture()
 
   this->dataPtr->workspaceDefinition = "SegmentationCameraWorkspace_" + this->Name();
   auto backgroundColor = Ogre2Conversions::Convert(
-    this->dataPtr->materialSwitcher->BackgroundColor());
+    this->dataPtr->materialSwitcher->backgroundColor);
 
   // basic workspace consist of clear pass with the givin color & 
   // a render scene pass to the givin render texture
@@ -540,23 +508,37 @@ RenderTargetPtr Ogre2SegmentationCamera::RenderTarget() const
 /////////////////////////////////////////////////
 void Ogre2SegmentationCamera::SetBackgroundColor(math::Color _color)
 {
-  return this->dataPtr->materialSwitcher->SetBackgroundColor(_color);
+  this->dataPtr->materialSwitcher->backgroundColor.Set(
+    _color.R(), _color.G(), _color.B()
+  );
 }
 
 /////////////////////////////////////////////////
 void Ogre2SegmentationCamera::SetBackgroundLabel(int _label)
 {
-  return this->dataPtr->materialSwitcher->SetBackgroundLabel(_label);
+  this->dataPtr->materialSwitcher->backgroundLabel = _label;
 }
 
 /////////////////////////////////////////////////
 math::Color Ogre2SegmentationCamera::BackgroundColor()
 {
-  return this->dataPtr->materialSwitcher->BackgroundColor();
+  return this->dataPtr->materialSwitcher->backgroundColor;
 }
 
 /////////////////////////////////////////////////
 int Ogre2SegmentationCamera::BackgroundLabel()
 {
-  return this->dataPtr->materialSwitcher->BackgroundLabel();
+  return this->dataPtr->materialSwitcher->backgroundLabel;
+}
+
+/////////////////////////////////////////////////
+void Ogre2SegmentationCamera::SetSegmentationType(SegmentationType _type)
+{
+  this->dataPtr->materialSwitcher->type = _type;
+}
+
+/////////////////////////////////////////////////
+void Ogre2SegmentationCamera::EnableColoredMap(bool _enable)
+{
+  this->dataPtr->materialSwitcher->isColoredMap = _enable;
 }
