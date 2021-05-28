@@ -51,7 +51,8 @@ namespace ignition
     // Forward declaration
     class Ogre2SegmentationCameraPrivate;
 
-    /// \brief Segmentation camera used to label each pixel with a class color into an image buffer
+    /// \brief Segmentation camera used to label each pixel with a label id
+    /// supports Semantic / Panoptic Segmentation
     class IGNITION_RENDERING_OGRE2_VISIBLE Ogre2SegmentationCamera :
       public BaseSegmentationCamera<Ogre2Sensor>
     {
@@ -87,38 +88,39 @@ namespace ignition
       // Documentation inherited
       public: virtual void PostRender() override;
 
-      /// \brief Subscribe to new segmentation frame event    
-      /// \param[in] _subscriber callback listener to be called on each new frame
-      public: virtual ignition::common::ConnectionPtr ConnectNewSegmentationFrame(
+      /// \brief Subscribe to new segmentation frame event
+      /// \param[in] _subscriber callback listener, called on each new frame
+      public: virtual ignition::common::ConnectionPtr
+        ConnectNewSegmentationFrame(
         std::function<void(const uint8_t *, unsigned int, unsigned int,
         unsigned int, const std::string &)>  _subscriber);
 
-      /// \brief Create dummy render texture. Needed to satisfy inheritance 
+      /// \brief Create dummy render texture. Needed to satisfy inheritance
       /// and to set image's dims
       public: virtual void CreateRenderTexture();
 
-      /// \brief Set Segmentation Type (Semantic / Instance) 
-      /// \param[in] _type Segmentation Type (Semantic / Instance) 
+      /// \brief Set Segmentation Type (Semantic / Instance)
+      /// \param[in] _type Segmentation Type (Semantic / Instance)
       public: void SetSegmentationType(SegmentationType _type);
 
-      /// \brief Set Segmentation Type (Semantic / Instance) 
-      /// \param[in] _type Segmentation Type (Semantic / Instance) 
-      public: void EnableColoredMap(bool _enable);      
+      /// \brief Set Segmentation Type (Semantic / Instance)
+      /// \param[in] _type Segmentation Type (Semantic / Instance)
+      public: void EnableColoredMap(bool _enable);
 
       /// \brief Set color for background & unlabeled items in the colored map
-      /// \param[in] _color Color of background & unlabeled items 
+      /// \param[in] _color Color of background & unlabeled items
       public: void SetBackgroundColor(math::Color _color);
 
       /// \brief Set label for background & unlabeled items in the semantic map
-      /// \param[in] _color label of background & unlabeled items 
+      /// \param[in] _color label of background & unlabeled items
       public: void SetBackgroundLabel(int _label);
 
       /// \brief Get color for background & unlabeled items in the colored map
-      /// \return Color of background & unlabeled items 
+      /// \return Color of background & unlabeled items
       public: math::Color BackgroundColor();
 
       /// \brief Set label for background & unlabeled items in the semantic map
-      /// \return label of background & unlabeled items 
+      /// \return label of background & unlabeled items
       public: int BackgroundLabel();
 
       /// \brief Get a pointer to the render target.

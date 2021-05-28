@@ -88,7 +88,8 @@ namespace ignition
     typedef shared_ptr<Ogre2RenderTexture>        Ogre2RenderTexturePtr;
     typedef shared_ptr<Ogre2RenderWindow>         Ogre2RenderWindowPtr;
     typedef shared_ptr<Ogre2Scene>                Ogre2ScenePtr;
-    typedef shared_ptr<Ogre2SegmentationCamera>   Ogre2SegmentationCameraPtr;    
+    typedef shared_ptr<Ogre2SegmentationCamera>
+      Ogre2SegmentationCameraPtr;
     typedef shared_ptr<Ogre2Sensor>               Ogre2SensorPtr;
     typedef shared_ptr<Ogre2SpotLight>            Ogre2SpotLightPtr;
     typedef shared_ptr<Ogre2SubMesh>              Ogre2SubMeshPtr;

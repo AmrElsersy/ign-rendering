@@ -55,32 +55,33 @@ namespace ignition
       /// \brief Connect to the new Segmentation image signal
       /// \param[in] _subscriber Subscriber callback function
       /// \return Pointer to the new Connection. This must be kept in scope
-      public: virtual ignition::common::ConnectionPtr ConnectNewSegmentationFrame(
+      public: virtual ignition::common::ConnectionPtr
+        ConnectNewSegmentationFrame(
           std::function<void(const uint8_t *, unsigned int, unsigned int,
           unsigned int, const std::string &)>  _subscriber) = 0;
 
-      /// \brief Set Segmentation Type (Semantic / Instance) 
-      /// \param[in] _type Segmentation Type (Semantic / Instance) 
+      /// \brief Set Segmentation Type (Semantic / Instance)
+      /// \param[in] _type Segmentation Type (Semantic / Instance)
       public: virtual void SetSegmentationType(SegmentationType _type) = 0;
 
-      /// \brief Set Segmentation Type (Semantic / Instance) 
-      /// \param[in] _type Segmentation Type (Semantic / Instance) 
-      public: virtual void EnableColoredMap(bool _enable) = 0;      
+      /// \brief Set Segmentation Type (Semantic / Instance)
+      /// \param[in] _type Segmentation Type (Semantic / Instance)
+      public: virtual void EnableColoredMap(bool _enable) = 0;
 
       /// \brief Set color for background & unlabeled items in the colored map
-      /// \param[in] _color Color of background & unlabeled items 
+      /// \param[in] _color Color of background & unlabeled items
       public: virtual void SetBackgroundColor(math::Color _color) = 0;
 
       /// \brief Set label for background & unlabeled items in the semantic map
-      /// \param[in] _color label of background & unlabeled items 
+      /// \param[in] _color label of background & unlabeled items
       public: virtual void SetBackgroundLabel(int _label) = 0;
 
       /// \brief Get color for background & unlabeled items in the colored map
-      /// \return Color of background & unlabeled items 
+      /// \return Color of background & unlabeled items
       public: virtual math::Color BackgroundColor() = 0;
 
       /// \brief Set label for background & unlabeled items in the semantic map
-      /// \return label of background & unlabeled items 
+      /// \return label of background & unlabeled items
       public: virtual int BackgroundLabel() = 0;
     };
   }

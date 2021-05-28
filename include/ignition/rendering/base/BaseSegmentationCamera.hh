@@ -44,13 +44,14 @@ namespace ignition
 
       public: virtual uint8_t *SegmentationData() const;
 
-      public: virtual ignition::common::ConnectionPtr ConnectNewSegmentationFrame(
+      public: virtual ignition::common::ConnectionPtr
+        ConnectNewSegmentationFrame(
           std::function<void(const uint8_t *, unsigned int, unsigned int,
           unsigned int, const std::string &)>  _subscriber);
 
       public: virtual void SetSegmentationType(SegmentationType _type);
 
-      public: virtual void EnableColoredMap(bool _enable);      
+      public: virtual void EnableColoredMap(bool _enable);
 
       public: virtual void SetBackgroundColor(math::Color _color);
 
@@ -88,7 +89,8 @@ namespace ignition
 
     //////////////////////////////////////////////////
     template <class T>
-    ignition::common::ConnectionPtr BaseSegmentationCamera<T>::ConnectNewSegmentationFrame(
+    ignition::common::ConnectionPtr BaseSegmentationCamera<T>::
+      ConnectNewSegmentationFrame(
           std::function<void(const uint8_t *, unsigned int, unsigned int,
           unsigned int, const std::string &)>)
     {

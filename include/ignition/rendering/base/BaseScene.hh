@@ -300,14 +300,16 @@ namespace ignition
       public: virtual SegmentationCameraPtr CreateSegmentationCamera() override;
 
       // Documentation inherited.
-      public: virtual SegmentationCameraPtr CreateSegmentationCamera(const unsigned int _id) override;
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera(
+        const unsigned int _id) override;
 
       // Documentation inherited.
-      public: virtual SegmentationCameraPtr CreateSegmentationCamera(const std::string &_name) override;
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera(
+        const std::string &_name) override;
 
       // Documentation inherited.
-      public: virtual SegmentationCameraPtr CreateSegmentationCamera(const unsigned int _id,
-                  const std::string &_name) override;
+      public: virtual SegmentationCameraPtr CreateSegmentationCamera(
+        const unsigned int _id, const std::string &_name) override;
 
       // Documentation inherited.
       public: virtual GpuRaysPtr CreateGpuRays() override;

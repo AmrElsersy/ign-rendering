@@ -776,19 +776,22 @@ SegmentationCameraPtr BaseScene::CreateSegmentationCamera()
   return this->CreateSegmentationCamera(objId);
 }
 //////////////////////////////////////////////////
-SegmentationCameraPtr BaseScene::CreateSegmentationCamera(const unsigned int _id)
+SegmentationCameraPtr BaseScene::CreateSegmentationCamera(
+  const unsigned int _id)
 {
   std::string objName = this->CreateObjectName(_id, "SegmentationCamera");
   return this->CreateSegmentationCamera(_id, objName);
 }
 //////////////////////////////////////////////////
-SegmentationCameraPtr BaseScene::CreateSegmentationCamera(const std::string &_name)
+SegmentationCameraPtr BaseScene::CreateSegmentationCamera(
+  const std::string &_name)
 {
   unsigned int objId = this->CreateObjectId();
   return this->CreateSegmentationCamera(objId, _name);
 }
 //////////////////////////////////////////////////
-SegmentationCameraPtr BaseScene::CreateSegmentationCamera(const unsigned int _id,
+SegmentationCameraPtr BaseScene::CreateSegmentationCamera(
+  const unsigned int _id,
     const std::string &_name)
 {
   SegmentationCameraPtr camera = this->CreateSegmentationCameraImpl(_id, _name);

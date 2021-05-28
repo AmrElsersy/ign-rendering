@@ -261,8 +261,8 @@ ThermalCameraPtr Ogre2Scene::CreateThermalCameraImpl(const unsigned int _id,
 }
 
 //////////////////////////////////////////////////
-SegmentationCameraPtr Ogre2Scene::CreateSegmentationCameraImpl(const unsigned int _id,
-    const std::string &_name)
+SegmentationCameraPtr Ogre2Scene::CreateSegmentationCameraImpl(
+  const unsigned int _id, const std::string &_name)
 {
   Ogre2SegmentationCameraPtr camera(new Ogre2SegmentationCamera);
   bool result = this->InitObject(camera, _id, _name);

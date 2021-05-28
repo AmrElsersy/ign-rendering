@@ -29,6 +29,7 @@
 #include "ignition/rendering/ogre2/Ogre2SegmentationCamera.hh"
 #include "ignition/rendering/ogre2/Ogre2Visual.hh"
 #include "ignition/math/Color.hh"
+#include <random>
 
 using namespace ignition;
 using namespace rendering;
@@ -67,7 +68,7 @@ namespace ignition
 
       /// \brief Check if the color is taken previously & store it if not taken
       /// \param[in] _color Color to be checked
-      /// \return True if taken, False elsewhere 
+      /// \return True if taken, False elsewhere
       private: bool IsTakenColor(math::Color _color);
 
       /// \brief A map of ogre sub item pointer to their original hlms material
@@ -100,18 +101,22 @@ namespace ignition
 
       /// \brief Keep track of num of instances of the same label
       /// Key: label id, value: num of instances
-      private: std::map<int, int> instancesCount;    
+      private: std::map<int, int> instancesCount;
 
-      /// \brief keep track of the random colors 
+      /// \brief keep track of the random colors
       /// key: encoded key of r,g,b values. value: always True
       private: std::map<int64_t, bool> takenColors;
 
       /// \brief keep track of the labels which is already colored
       /// usful for coloring items in semantic mode in LabelToColor()
       /// key: label id. value: always True
-      private: std::map<int64_t, bool> coloredLabel; 
+      private: std::map<int64_t, bool> coloredLabel;
 
-      /// \brief Ogre2 Scene 
+      private: std::default_random_engine generator;
+
+      // private: std::uniform_int_distribution<int> distribution(1,2);
+
+      /// \brief Ogre2 Scene
       private: Ogre2ScenePtr scene;
 
       friend class Ogre2SegmentationCamera;
@@ -122,7 +127,7 @@ namespace ignition
 
 /////////////////////////////////////////////////
 SegmentationMaterialSwitcher::SegmentationMaterialSwitcher(Ogre2ScenePtr _scene)
-{  
+{
   this->scene = _scene;
   this->backgroundColor.Set(0, 0, 0);
 
@@ -168,7 +173,7 @@ bool SegmentationMaterialSwitcher::IsTakenColor(math::Color _color)
   else
   {
     this->takenColors[colorId] = true;
-    return false;  
+    return false;
   }
 }
 
@@ -179,18 +184,19 @@ math::Color SegmentationMaterialSwitcher::LabelToColor(int64_t _label)
     return this->backgroundColor;
 
   // use label as seed to generate the same color for the label
-  srand(_label);      
+  this->generator.seed(_label);
+  std::uniform_int_distribution<int> distribution(0, 255);
 
   // random color
-  int r = (rand()) % 255;
-  int g = (rand()) % 255;
-  int b = (rand()) % 255;
+  int r = distribution(this->generator);
+  int g = distribution(this->generator);
+  int b = distribution(this->generator);
 
   math::Color color(r, g, b);
 
   if (this->type == SegmentationType::Semantic)
   {
-    // if the label is colored before return the color 
+    // if the label is colored before return the color
     // don't check fo taken colors in that case, all items
     // with the same label will have the same color
     if (this->coloredLabel.count(_label))
@@ -232,10 +238,11 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
       {
         ignerr << "Ogre Error:" << e.getFullDescription() << "\n";
       }
-      Ogre2VisualPtr ogreVisual = std::dynamic_pointer_cast<Ogre2Visual>(visual);
+      Ogre2VisualPtr ogreVisual = std::dynamic_pointer_cast<Ogre2Visual>(
+        visual);
 
       // get class user data
-      Variant labelAny = ogreVisual->UserData(this->labelKey);  
+      Variant labelAny = ogreVisual->UserData(this->labelKey);
 
       int label;
       try
@@ -250,7 +257,7 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
 
       for (unsigned int i = 0; i < item->getNumSubItems(); i++)
       {
-        // save subitems material 
+        // save subitems material
         Ogre::SubItem *subItem = item->getSubItem(i);
         Ogre::HlmsDatablock *datablock = subItem->getDatablock();
         this->datablockMap[subItem] = datablock;
@@ -265,7 +272,7 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
             subItem->setCustomParameter(1, Ogre::Vector4(
               color.R(), color.G(), color.B(), 1.0));
           }
-          else 
+          else
           {
             // labels ids material(each pixel has item's label)
             float labelColor = label / 255.0;
@@ -278,7 +285,7 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
           if (!this->instancesCount.count(label))
             this->instancesCount[label] = 0;
 
-          this->instancesCount[label] ++;
+          this->instancesCount[label]++;
           int instanceCount = this->instancesCount[label];
 
           if (this->isColoredMap)
@@ -293,7 +300,7 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
               color = this->LabelToColor(compositeId);
 
             subItem->setCustomParameter(1, Ogre::Vector4(
-              color.R(), color.G(), color.B(), 1.0)); 
+              color.R(), color.G(), color.B(), 1.0));
           }
           else
           {
@@ -314,7 +321,7 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
           subItem->setMaterial(this->plainOverlayMaterial);
         else
           subItem->setMaterial(this->plainMaterial);
-      }      
+      }
     }
     itor.moveNext();
   }
@@ -350,17 +357,17 @@ void SegmentationMaterialSwitcher::postRenderTargetUpdate(
 /////////////////////////////////////////////////
 class ignition::rendering::Ogre2SegmentationCameraPrivate
 {
-  /// \brief Material Switcher to switch item's material 
+  /// \brief Material Switcher to switch item's material
   /// with colored version for segmentation
   public: SegmentationMaterialSwitcher *materialSwitcher;
 
   /// \brief Compositor Manager to create workspace
   public: Ogre::CompositorManager2 *ogreCompositorManager;
 
-  /// \brief Workspace to interface with render texture 
+  /// \brief Workspace to interface with render texture
   public: Ogre::CompositorWorkspace *ogreCompositorWorkspace;
 
-  /// \brief Workspace Definition 
+  /// \brief Workspace Definition
   public: std::string workspaceDefinition;
 
   /// \brief Render Texture to store the final segmentation data
@@ -379,15 +386,16 @@ class ignition::rendering::Ogre2SegmentationCameraPrivate
   public: Ogre2RenderTexturePtr dummyTexture;
 
   /// \brief New Segmentation Frame Event to notify listeners with new data
-  public: ignition::common::EventT<void(const uint8_t *, unsigned int, unsigned int,
-        unsigned int, const std::string &)> newSegmentationFrame;
+  public: ignition::common::EventT<void(const uint8_t *, unsigned int,
+        unsigned int, unsigned int, const std::string &)>
+        newSegmentationFrame;
 
   /// \brief Image / Render Texture Format
   public: Ogre::PixelFormat format = Ogre::PF_R8G8B8;
 };
 
 /////////////////////////////////////////////////
-Ogre2SegmentationCamera::Ogre2SegmentationCamera() : 
+Ogre2SegmentationCamera::Ogre2SegmentationCamera() :
   dataPtr(new Ogre2SegmentationCameraPrivate())
 {
 }
@@ -404,8 +412,8 @@ void Ogre2SegmentationCamera::Init()
   BaseCamera::Init();
   this->CreateCamera();
   this->CreateRenderTexture();
-  
-  this->dataPtr->materialSwitcher = 
+
+  this->dataPtr->materialSwitcher =
     new SegmentationMaterialSwitcher(this->scene);
 }
 
@@ -468,45 +476,50 @@ void Ogre2SegmentationCamera::CreateSegmentationTexture()
   this->ogreCamera->setNearClipDistance(this->NearClipPlane());
   this->ogreCamera->setFarClipDistance(this->FarClipPlane());
   this->ogreCamera->setAspectRatio(this->AspectRatio());
-  double vfov = 2.0 * atan(tan(this->HFOV().Radian() / 2.0) / this->AspectRatio());
+  double vfov = 2.0 * atan(tan(this->HFOV().Radian() / 2.0) /
+    this->AspectRatio());
   this->ogreCamera->setFOVy(Ogre::Radian(vfov));
 
   auto width = this->ImageWidth();
   auto height = this->ImageHeight();
 
   // texture
-  this->dataPtr->ogreTexture = Ogre::TextureManager::getSingleton().createManual(
+  this->dataPtr->ogreTexture =
+    Ogre::TextureManager::getSingleton().createManual(
     "SegmentationCameraTexture",
     Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME,
-    Ogre::TEX_TYPE_2D, width, height, 0, this->dataPtr->format, Ogre::TU_RENDERTARGET
+    Ogre::TEX_TYPE_2D, width, height, 0, this->dataPtr->format,
+    Ogre::TU_RENDERTARGET
   );
 
   // render texture
   auto hardwareBuffer = this->dataPtr->ogreTexture->getBuffer();
   this->dataPtr->ogreRenderTexture = hardwareBuffer->getRenderTarget();
 
-  // add material switcher to switch the material to a unique color for each object
+  // switch the material to a unique color for each object
   // in the pre render & get the original material again in the post render
-  this->dataPtr->ogreRenderTexture->addListener(this->dataPtr->materialSwitcher);
+  this->dataPtr->ogreRenderTexture->addListener(
+    this->dataPtr->materialSwitcher);
 
   // workspace
   auto engine = Ogre2RenderEngine::Instance();
   auto ogreRoot = engine->OgreRoot();
   this->dataPtr->ogreCompositorManager = ogreRoot->getCompositorManager2();
 
-  this->dataPtr->workspaceDefinition = "SegmentationCameraWorkspace_" + this->Name();
+  this->dataPtr->workspaceDefinition = "SegmentationCameraWorkspace_" +
+    this->Name();
   auto backgroundColor = Ogre2Conversions::Convert(
     this->dataPtr->materialSwitcher->backgroundColor);
 
-  // basic workspace consist of clear pass with the givin color & 
+  // basic workspace consist of clear pass with the givin color &
   // a render scene pass to the givin render texture
   this->dataPtr->ogreCompositorManager->createBasicWorkspaceDef(
     this->dataPtr->workspaceDefinition,
     backgroundColor
     );
 
-  // connect the compositor with the render texture to render the final output to it
-  this->dataPtr->ogreCompositorWorkspace = 
+  // connect the compositor with the render texture to render the final output
+  this->dataPtr->ogreCompositorWorkspace =
     this->dataPtr->ogreCompositorManager->addWorkspace(
       this->scene->OgreSceneManager(),
       this->dataPtr->ogreRenderTexture,
@@ -518,16 +531,16 @@ void Ogre2SegmentationCamera::CreateSegmentationTexture()
   // set visibility mask
   auto node = this->dataPtr->ogreCompositorWorkspace->getNodeSequence()[0];
   auto pass = node->_getPasses()[1]->getDefinition();
-  auto renderScenePass = dynamic_cast<const Ogre::CompositorPassSceneDef *>(pass);
-  const_cast<Ogre::CompositorPassSceneDef *>(renderScenePass)->setVisibilityMask(
-    IGN_VISIBILITY_ALL
-  );
+  auto renderScenePass =
+    dynamic_cast<const Ogre::CompositorPassSceneDef *>(pass);
+  const_cast<Ogre::CompositorPassSceneDef *>(
+    renderScenePass)->setVisibilityMask(IGN_VISIBILITY_ALL);
 
   // buffer to store render texture data
   auto bufferSize = Ogre::PixelUtil::getMemorySize(
     width, height, 1, this->dataPtr->format);
   this->dataPtr->buffer = new uint8_t[bufferSize];
-  this->dataPtr->pixelBox = new Ogre::PixelBox(width , height ,1, 
+  this->dataPtr->pixelBox = new Ogre::PixelBox(width, height, 1,
     this->dataPtr->format, this->dataPtr->buffer);
 }
 
@@ -559,8 +572,9 @@ void Ogre2SegmentationCamera::PostRender()
   uint channelCount = 3;
 
   this->dataPtr->newSegmentationFrame(
-    this->dataPtr->buffer, 
-    width, height, channelCount, Ogre::PixelUtil::getFormatName(this->dataPtr->format)
+    this->dataPtr->buffer,
+    width, height, channelCount,
+    Ogre::PixelUtil::getFormatName(this->dataPtr->format)
   );
 }
 
@@ -571,7 +585,8 @@ uint8_t *Ogre2SegmentationCamera::SegmentationData() const
 }
 
 /////////////////////////////////////////////////
-ignition::common::ConnectionPtr Ogre2SegmentationCamera::ConnectNewSegmentationFrame(
+ignition::common::ConnectionPtr
+  Ogre2SegmentationCamera::ConnectNewSegmentationFrame(
   std::function<void(const uint8_t *, unsigned int, unsigned int,
   unsigned int, const std::string &)>  _subscriber)
 {
@@ -582,7 +597,8 @@ ignition::common::ConnectionPtr Ogre2SegmentationCamera::ConnectNewSegmentationF
 void Ogre2SegmentationCamera::CreateRenderTexture()
 {
   RenderTexturePtr base = this->scene->CreateRenderTexture();
-  this->dataPtr->dummyTexture = std::dynamic_pointer_cast<Ogre2RenderTexture>(base);
+  this->dataPtr->dummyTexture =
+    std::dynamic_pointer_cast<Ogre2RenderTexture>(base);
   this->dataPtr->dummyTexture->SetWidth(1);
   this->dataPtr->dummyTexture->SetHeight(1);
 }
