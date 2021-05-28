@@ -65,8 +65,10 @@ namespace ignition
       /// \return _color unique color in the colored map for that label
       private: math::Color LabelToColor(int64_t _label);
 
-      /// \brief 
-      // private: bool IsTakenColor(math::Color);
+      /// \brief Check if the color is taken previously & store it if not taken
+      /// \param[in] _color Color to be checked
+      /// \return True if taken, False elsewhere 
+      private: bool IsTakenColor(math::Color _color);
 
       /// \brief A map of ogre sub item pointer to their original hlms material
       private: std::map<Ogre::SubItem *, Ogre::HlmsDatablock *> datablockMap;
@@ -92,15 +94,22 @@ namespace ignition
       /// \brief Segmentation Type (Semantic / Instance)
       private: SegmentationType type {SegmentationType::Semantic};
 
-      /// \brief True to generate colored map 
+      /// \brief True to generate colored map
       /// False to generate labels ids map
       private: bool isColoredMap;
 
-      /// \brief 
-      private: std::map<int, int> instancesCount;      
+      /// \brief Keep track of num of instances of the same label
+      /// Key: label id, value: num of instances
+      private: std::map<int, int> instancesCount;    
 
-      /// \brief 
-      // private: std::map<      
+      /// \brief keep track of the random colors 
+      /// key: encoded key of r,g,b values. value: always True
+      private: std::map<int64_t, bool> takenColors;
+
+      /// \brief keep track of the labels which is already colored
+      /// usful for coloring items in semantic mode in LabelToColor()
+      /// key: label id. value: always True
+      private: std::map<int64_t, bool> coloredLabel; 
 
       /// \brief Ogre2 Scene 
       private: Ogre2ScenePtr scene;
@@ -149,6 +158,21 @@ SegmentationMaterialSwitcher::~SegmentationMaterialSwitcher()
 }
 
 /////////////////////////////////////////////////
+bool SegmentationMaterialSwitcher::IsTakenColor(math::Color _color)
+{
+  // get the int value of the 24 bit color
+  int64_t colorId = _color.R() * 255 * 255 + _color.G() * 255 + _color.B();
+
+  if (this->takenColors.count(colorId))
+    return true;
+  else
+  {
+    this->takenColors[colorId] = true;
+    return false;  
+  }
+}
+
+/////////////////////////////////////////////////
 math::Color SegmentationMaterialSwitcher::LabelToColor(int64_t _label)
 {
   if (_label == this->backgroundLabel)
@@ -164,6 +188,20 @@ math::Color SegmentationMaterialSwitcher::LabelToColor(int64_t _label)
 
   math::Color color(r, g, b);
 
+  if (this->type == SegmentationType::Semantic)
+  {
+    // if the label is colored before return the color 
+    // don't check fo taken colors in that case, all items
+    // with the same label will have the same color
+    if (this->coloredLabel.count(_label))
+      return color;
+  }
+
+  // loop recursivly till finding a unique color
+  if (this->IsTakenColor(color))
+      return this->LabelToColor(_label);
+
+  this->coloredLabel[_label] = true;
   return color;
 }
 
@@ -197,12 +235,12 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
       Ogre2VisualPtr ogreVisual = std::dynamic_pointer_cast<Ogre2Visual>(visual);
 
       // get class user data
-      Variant classAny = ogreVisual->UserData(this->labelKey);  
+      Variant labelAny = ogreVisual->UserData(this->labelKey);  
 
       int label;
       try
       {
-        label = std::get<int>(classAny);
+        label = std::get<int>(labelAny);
       }
       catch(std::bad_variant_access &e)
       {
@@ -210,8 +248,6 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
         label = this->backgroundLabel;
       }
 
-      // item->setVisibilityFlags(Ogre::VisibilityFlags::LAYER_VISIBILITY);
-      // // item->setVisibilityFlags(Ogre::VisibilityFlags::RESERVED_VISIBILITY_FLAGS);
       for (unsigned int i = 0; i < item->getNumSubItems(); i++)
       {
         // save subitems material 
@@ -247,7 +283,8 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
 
           if (this->isColoredMap)
           {
-            int compositeId = label * 256 + instanceCount;
+            // convert 24 bit number to int64
+            int compositeId = label * 256 * 256 + instanceCount;
 
             math::Color color;
             if (label == this->backgroundLabel)
@@ -281,8 +318,11 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
     }
     itor.moveNext();
   }
-  // reset the count 
+
+  // reset the count & colors tracking
   this->instancesCount.clear();
+  this->takenColors.clear();
+  this->coloredLabel.clear();
 }
 
 /////////////////////////////////////////////////

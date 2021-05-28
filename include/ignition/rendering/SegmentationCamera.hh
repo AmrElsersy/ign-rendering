@@ -26,8 +26,7 @@
 // Segmentation types for semantic/instance segmentation
 enum SegmentationType {
   Semantic,
-  Panoptic,
-  Instance
+  Panoptic
 };
 
 namespace ignition
