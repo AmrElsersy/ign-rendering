@@ -61,9 +61,12 @@ namespace ignition
                   const Ogre::RenderTargetEvent &_evt);
 
       /// \brief Convert label of semantic map to a unique color for colored map
-      /// \param[in] _label id of the semantic map
+      /// \param[in] _label id of the semantic map or encoded id of panoptic map
       /// \return _color unique color in the colored map for that label
-      private: math::Color LabelToColor(int _label);
+      private: math::Color LabelToColor(int64_t _label);
+
+      /// \brief 
+      // private: bool IsTakenColor(math::Color);
 
       /// \brief A map of ogre sub item pointer to their original hlms material
       private: std::map<Ogre::SubItem *, Ogre::HlmsDatablock *> datablockMap;
@@ -92,6 +95,12 @@ namespace ignition
       /// \brief True to generate colored map 
       /// False to generate labels ids map
       private: bool isColoredMap;
+
+      /// \brief 
+      private: std::map<int, int> instancesCount;      
+
+      /// \brief 
+      // private: std::map<      
 
       /// \brief Ogre2 Scene 
       private: Ogre2ScenePtr scene;
@@ -140,20 +149,22 @@ SegmentationMaterialSwitcher::~SegmentationMaterialSwitcher()
 }
 
 /////////////////////////////////////////////////
-math::Color SegmentationMaterialSwitcher::LabelToColor(int _label)
+math::Color SegmentationMaterialSwitcher::LabelToColor(int64_t _label)
 {
   if (_label == this->backgroundLabel)
     return this->backgroundColor;
 
   // use label as seed to generate the same color for the label
-  srand(_label);  
+  srand(_label);      
 
   // random color
   int r = (rand()) % 255;
   int g = (rand()) % 255;
   int b = (rand()) % 255;
 
-  return math::Color(r, g, b);
+  math::Color color(r, g, b);
+
+  return color;
 }
 
 ////////////////////////////////////////////////
@@ -208,20 +219,55 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
         Ogre::HlmsDatablock *datablock = subItem->getDatablock();
         this->datablockMap[subItem] = datablock;
 
-        // Materail Switching
-        if (this->isColoredMap)
+        // Material Switching
+        if (this->type == SegmentationType::Semantic)
         {
-          // semantic material(each pixel has item's color)
-          math::Color color = this->LabelToColor(label);
-          subItem->setCustomParameter(1, Ogre::Vector4(
-            color.R(), color.G(), color.B(), 1.0));
+          if (this->isColoredMap)
+          {
+            // semantic material(each pixel has item's color)
+            math::Color color = this->LabelToColor(label);
+            subItem->setCustomParameter(1, Ogre::Vector4(
+              color.R(), color.G(), color.B(), 1.0));
+          }
+          else 
+          {
+            // labels ids material(each pixel has item's label)
+            float labelColor = label / 255.0;
+            subItem->setCustomParameter(1, Ogre::Vector4(
+              labelColor, labelColor, labelColor, 1.0));
+          }
         }
-        else 
+        else if (this->type == SegmentationType::Panoptic)
         {
-          // labels ids material(each pixel has item's label)
-          float labelColor = label / 255.0;
-          subItem->setCustomParameter(1, Ogre::Vector4(
-            labelColor, labelColor, labelColor, 1.0));
+          if (!this->instancesCount.count(label))
+            this->instancesCount[label] = 0;
+
+          this->instancesCount[label] ++;
+          int instanceCount = this->instancesCount[label];
+
+          if (this->isColoredMap)
+          {
+            int compositeId = label * 256 + instanceCount;
+
+            math::Color color;
+            if (label == this->backgroundLabel)
+              color = this->LabelToColor(label);
+            else
+              color = this->LabelToColor(compositeId);
+
+            subItem->setCustomParameter(1, Ogre::Vector4(
+              color.R(), color.G(), color.B(), 1.0)); 
+          }
+          else
+          {
+            // 256 => 8 bits .. 255 => color percentage
+            float labelColor = label / 255.0;
+            float instanceColor1 = (instanceCount / 256) / 255.0;
+            float instanceColor2 = (instanceCount % 256) / 255.0;
+
+            subItem->setCustomParameter(1, Ogre::Vector4(
+              labelColor, instanceColor1, instanceColor2, 1.0));
+          }
         }
 
         // check if it's an overlay material by assuming the
@@ -235,6 +281,8 @@ void SegmentationMaterialSwitcher::preRenderTargetUpdate(
     }
     itor.moveNext();
   }
+  // reset the count 
+  this->instancesCount.clear();
 }
 
 /////////////////////////////////////////////////
