@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@
 
 #define KEY_ESC 27
 #define KEY_TAB  9
+#define UNSUPPORTED_BUTTONS 5
 
 //////////////////////////////////////////////////
 unsigned int imgw = 0;
@@ -94,7 +95,7 @@ std::mutex g_mouseMutex;
 void mouseCB(int _button, int _state, int _x, int _y)
 {
   // ignore unknown mouse button numbers
-  if (_button >= 5)
+  if (_button >= UNSUPPORTED_BUTTONS)
     return;
 
   std::lock_guard<std::mutex> lock(g_mouseMutex);
@@ -148,7 +149,6 @@ void handleMouse()
 
   if (g_mouse.buttonDirty)
   {
-    // std::cout << "(" << g_mouse.x << "," << g_mouse.y << ")" << std::endl;
     g_mouse.buttonDirty = false;
     double nx =
         2.0 * g_mouse.x / static_cast<double>(rayCamera->ImageWidth()) - 1.0;
@@ -182,7 +182,6 @@ void handleMouse()
     }
   }
 
-
   if (g_mouse.motionDirty)
   {
     g_mouse.motionDirty = false;
@@ -191,7 +190,7 @@ void handleMouse()
     // left mouse button pan
     if (g_mouse.button == GLUT_LEFT_BUTTON && g_mouse.state == GLUT_DOWN)
     {
-      for (ir::CameraPtr camera : g_cameras)
+      for (auto & camera : g_cameras)
       {
         g_viewControl.SetCamera(camera);
         g_viewControl.SetTarget(g_target.point);
@@ -200,7 +199,7 @@ void handleMouse()
     }
     else if (g_mouse.button == GLUT_MIDDLE_BUTTON && g_mouse.state == GLUT_DOWN)
     {
-      for (ir::CameraPtr camera : g_cameras)
+      for (auto & camera : g_cameras)
       {
         g_viewControl.SetCamera(camera);
         g_viewControl.SetTarget(g_target.point);
@@ -228,7 +227,6 @@ void handleMouse()
   }
 
 }
-
 
 //////////////////////////////////////////////////
 void displayCB()

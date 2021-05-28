@@ -456,6 +456,7 @@ namespace ignition
       /// \brief Implementation for creating a segmentation camera.
       /// \param[in] _id Unique id
       /// \param[in] _name Name of segmentation camera
+      /// \return Pointer to segmentation camera
       protected: virtual SegmentationCameraPtr CreateSegmentationCameraImpl(
                      unsigned int _id,
                      const std::string &_name)

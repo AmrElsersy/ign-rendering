@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,6 @@ void buildScene(ScenePtr _scene)
   plane->AddGeometry(_scene->CreatePlane());
   plane->SetLocalScale(5, 8, 1);
   plane->SetLocalPosition(3, 0, -0.5);
-  // plane->SetUserData("label", 0);
   root->AddChild(plane);
 
   // create a mesh
@@ -156,9 +155,7 @@ void buildScene(ScenePtr _scene)
   camera->SetNearClipPlane(1.0);
   camera->SetAspectRatio(1.333);
   camera->SetHFOV(IGN_PI / 2);
-  // camera->SetBackgroundColor(math::Color(255,255,255));
   camera->EnableColoredMap(true);
-  // camera->SetSegmentationType(SegmentationType::Panoptic);
   camera->SetSegmentationType(SegmentationType::Semantic);
   root->AddChild(camera);
 }
@@ -187,6 +184,14 @@ int main(int _argc, char** _argv)
 {
   glutInit(&_argc, _argv);
 
+  // Expose engine name to command line because we can't instantiate both
+  // ogre and ogre2 at the same time
+  std::string ogreEngineName("ogre");
+  if (_argc > 1)
+  {
+    ogreEngineName = _argv[1];
+  }
+
   common::Console::SetVerbosity(4);
   std::vector<std::string> engineNames;
   std::vector<CameraPtr> cameras;
@@ -205,7 +210,6 @@ int main(int _argc, char** _argv)
     }
     catch (...)
     {
-      // std::cout << ex.what() << std::endl;
       std::cerr << "Error starting up: " << engineName << std::endl;
     }
   }

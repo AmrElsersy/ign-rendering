@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  *
 */
 
-#ifndef IGNITION_RENDERING_OGRE2_OGRE2SegmentationCAMERA_HH_
-#define IGNITION_RENDERING_OGRE2_OGRE2SegmentationCAMERA_HH_
+#ifndef IGNITION_RENDERING_OGRE2_OGRE2SEGMENTATIONCAMERA_HH_
+#define IGNITION_RENDERING_OGRE2_OGRE2SEGMENTATIONCAMERA_HH_
 
 #ifdef _WIN32
   // Ensure that Winsock2.h is included before Windows.h, which can get
@@ -99,12 +99,13 @@ namespace ignition
       /// and to set image's dims
       public: virtual void CreateRenderTexture();
 
-      /// \brief Set Segmentation Type (Semantic / Instance)
-      /// \param[in] _type Segmentation Type (Semantic / Instance)
+      /// \brief Set Segmentation Type (Semantic / Panoptic)
+      /// \param[in] _type Segmentation Type (Semantic / Panoptic)
       public: void SetSegmentationType(SegmentationType _type);
 
-      /// \brief Set Segmentation Type (Semantic / Instance)
-      /// \param[in] _type Segmentation Type (Semantic / Instance)
+      /// \brief Enable Color map mode to generated colored semantics
+      /// \param[in] _enable True to generate colored map, False to generate
+      /// label id map
       public: void EnableColoredMap(bool _enable);
 
       /// \brief Set color for background & unlabeled items in the colored map
@@ -112,14 +113,14 @@ namespace ignition
       public: void SetBackgroundColor(math::Color _color);
 
       /// \brief Set label for background & unlabeled items in the semantic map
-      /// \param[in] _color label of background & unlabeled items
+      /// \param[in] _label label of background & unlabeled items
       public: void SetBackgroundLabel(int _label);
 
       /// \brief Get color for background & unlabeled items in the colored map
       /// \return Color of background & unlabeled items
       public: math::Color BackgroundColor();
 
-      /// \brief Set label for background & unlabeled items in the semantic map
+      /// \brief Get label for background & unlabeled items in the semantic map
       /// \return label of background & unlabeled items
       public: int BackgroundLabel();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,8 @@ namespace ignition
       /// key: label id. value: always True
       private: std::map<int64_t, bool> coloredLabel;
 
+      /// \brief Pseudo num generator to generate colors from label id
       private: std::default_random_engine generator;
-
-      // private: std::uniform_int_distribution<int> distribution(1,2);
 
       /// \brief Ogre2 Scene
       private: Ogre2ScenePtr scene;
@@ -359,31 +358,31 @@ class ignition::rendering::Ogre2SegmentationCameraPrivate
 {
   /// \brief Material Switcher to switch item's material
   /// with colored version for segmentation
-  public: SegmentationMaterialSwitcher *materialSwitcher;
+  public: SegmentationMaterialSwitcher *materialSwitcher {nullptr};
 
   /// \brief Compositor Manager to create workspace
-  public: Ogre::CompositorManager2 *ogreCompositorManager;
+  public: Ogre::CompositorManager2 *ogreCompositorManager {nullptr};
 
   /// \brief Workspace to interface with render texture
-  public: Ogre::CompositorWorkspace *ogreCompositorWorkspace;
+  public: Ogre::CompositorWorkspace *ogreCompositorWorkspace {nullptr};
 
   /// \brief Workspace Definition
   public: std::string workspaceDefinition;
 
   /// \brief Render Texture to store the final segmentation data
-  public: Ogre::RenderTexture *ogreRenderTexture;
+  public: Ogre::RenderTexture *ogreRenderTexture {nullptr};
 
   /// \brief Texture to create the render texture from.
   public: Ogre::TexturePtr ogreTexture;
 
   /// \brief Pixel Box to copy render texture data to a buffer
-  public: Ogre::PixelBox *pixelBox;
+  public: Ogre::PixelBox *pixelBox {nullptr};
 
   /// \brief buffer to store render texture data & to be sent to listeners
   public: uint8_t *buffer = nullptr;
 
   /// \brief dummy render texture to set image dims
-  public: Ogre2RenderTexturePtr dummyTexture;
+  public: Ogre2RenderTexturePtr dummyTexture {nullptr};
 
   /// \brief New Segmentation Frame Event to notify listeners with new data
   public: ignition::common::EventT<void(const uint8_t *, unsigned int,

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 Open Source Robotics Foundation
+ * Copyright (C) 2021 Open Source Robotics Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,11 @@
 #include "ignition/rendering/Camera.hh"
 #include "ignition/math/Color.hh"
 
-// Segmentation types for semantic/instance segmentation
+/// \brief Segmentation types for Semantic / Panpoptic segmentation
+/// Semantic: Pixels of same label from different items
+/// have the same color & id.
+/// Panoptic: Pixels of same label from different items,have different
+/// color & id. 1 channel for label id & 2 channels for instance id
 enum SegmentationType {
   Semantic,
   Panoptic
