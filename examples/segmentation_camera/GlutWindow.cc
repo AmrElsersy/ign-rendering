@@ -149,6 +149,11 @@ void handleMouse()
 
   if (g_mouse.buttonDirty)
   {
+    // 251, 137
+    // 495, 369
+    std::cout << g_mouse.x << ", " << g_mouse.y << std::endl;
+
+
     g_mouse.buttonDirty = false;
     double nx =
         2.0 * g_mouse.x / static_cast<double>(rayCamera->ImageWidth()) - 1.0;

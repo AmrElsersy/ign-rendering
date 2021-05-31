@@ -86,11 +86,11 @@ void buildScene(ScenePtr _scene)
 
   ////////////////////// Visuals ///////////////////////
   // create plane visual
-  VisualPtr plane = _scene->CreateVisual("plane");
-  plane->AddGeometry(_scene->CreatePlane());
-  plane->SetLocalScale(5, 8, 1);
-  plane->SetLocalPosition(3, 0, -0.5);
-  root->AddChild(plane);
+  // VisualPtr plane = _scene->CreateVisual("plane");
+  // plane->AddGeometry(_scene->CreatePlane());
+  // plane->SetLocalScale(5, 8, 1);
+  // plane->SetLocalPosition(3, 0, -0.5);
+  // root->AddChild(plane);
 
   // create a mesh
   VisualPtr mesh = _scene->CreateVisual();
@@ -128,7 +128,7 @@ void buildScene(ScenePtr _scene)
 
   // create a sphere
   VisualPtr sphere = _scene->CreateVisual("sphere");
-  sphere->SetLocalPosition(3, -1.5, 0);
+  sphere->SetLocalPosition(5, -1.5, 0);
   GeometryPtr sphereGeom = _scene->CreateSphere();
   sphere->AddGeometry(sphereGeom);
   sphere->SetMaterial(red);
@@ -137,7 +137,7 @@ void buildScene(ScenePtr _scene)
 
   // create a sphere2
   VisualPtr sphere2 = _scene->CreateVisual("sphere2");
-  sphere2->SetLocalPosition(5, 4, 2);
+  sphere2->SetLocalPosition(5, 4, 5);
   GeometryPtr sphereGeom2 = _scene->CreateSphere();
   sphere2->AddGeometry(sphereGeom2);
   sphere2->SetMaterial(red);
@@ -148,11 +148,13 @@ void buildScene(ScenePtr _scene)
   SegmentationCameraPtr camera = _scene->CreateSegmentationCamera("camera");
   camera->SetLocalPosition(0.0, 0.0, 0.5);
   camera->SetLocalRotation(0.0, 0.0, 0.0);
+  // camera->SetWorldPosition(0,0,0);
+  // camera->SetWorldRotation(0,0,0);
   camera->SetImageWidth(800);
   camera->SetImageHeight(600);
   camera->SetImageFormat(PixelFormat::PF_R8G8B8);
-  camera->SetFarClipPlane(10);
-  camera->SetNearClipPlane(1.0);
+  // camera->SetFarClipPlane(100);
+  // camera->SetNearClipPlane(1.0);
   camera->SetAspectRatio(1.333);
   camera->SetHFOV(IGN_PI / 2);
   camera->EnableColoredMap(true);

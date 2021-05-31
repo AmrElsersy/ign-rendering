@@ -31,6 +31,11 @@
 #include "ignition/math/Color.hh"
 #include <random>
 
+#include <OgreGL3PlusAsyncTicket.h>
+#include <OgreBitwise.h>
+#include <OgreWireAabb.h>
+#include <OgreWireBoundingBox.h>
+
 using namespace ignition;
 using namespace rendering;
 
@@ -553,6 +558,151 @@ void Ogre2SegmentationCamera::Render()
   this->dataPtr->ogreCompositorWorkspace->setEnabled(false);
 }
 
+
+
+void MeshMinimalBox(
+  const Ogre::MeshPtr mesh,
+  const Ogre::Matrix4 &viewMatrix,
+  const Ogre::Matrix4 &projMatrix,
+  Ogre::Vector3 &minVertex,
+  Ogre::Vector3 &maxVertex,
+  const Ogre::Vector3 &position,
+  const Ogre::Quaternion &oreintation,
+  const Ogre::Vector3 &scale
+  )
+{
+  minVertex.x = 100000;
+  minVertex.y = 100000;
+  maxVertex.x = -100000;
+  maxVertex.y = -100000;
+
+  auto subMeshes = mesh->getSubMeshes();
+
+  for (auto subMesh : subMeshes)
+  {
+    Ogre::VertexArrayObjectArray vaos = subMesh->mVao[0];
+
+    if (!vaos.empty())
+    {
+      //Get the first LOD level
+      Ogre::VertexArrayObject *vao = vaos[0];
+
+      // Vertex buffers to access positions (in local coord)
+      const Ogre::VertexBufferPackedVec &vertexBuffers = vao->getVertexBuffers();
+
+      // request async read from buffer
+      Ogre::VertexArrayObject::ReadRequestsArray requests;
+      requests.push_back(Ogre::VertexArrayObject::ReadRequests(Ogre::VES_POSITION));
+      vao->readRequests(requests);
+      vao->mapAsyncTickets(requests);
+
+      unsigned int subMeshVerticiesNum = requests[0].vertexBuffer->getNumElements();
+      for (size_t i = 0; i < subMeshVerticiesNum; ++i)
+      {
+        Ogre::Vector3 vec;
+        if (requests[0].type == Ogre::VET_HALF4)
+        {
+          const Ogre::uint16* vertex = reinterpret_cast<const Ogre::uint16*>(requests[0].data);
+          vec.x = Ogre::Bitwise::halfToFloat(vertex[0]);
+          vec.y = Ogre::Bitwise::halfToFloat(vertex[1]);
+          vec.z = Ogre::Bitwise::halfToFloat(vertex[2]);
+        }
+        else if (requests[0].type == Ogre::VET_FLOAT3)
+        {
+          const float* vertex = reinterpret_cast<const float*>(requests[0].data);
+          vec.x = *vertex++;
+          vec.y = *vertex++;
+          vec.z = *vertex++;
+        }
+        else
+          ignerr << "Vertex Buffer type error" << std::endl;
+
+        vec = (oreintation * (vec * scale)) + position;
+
+        vec = projMatrix * viewMatrix * vec;
+        // homogenous
+        vec.x /= vec.z;
+        vec.y /= vec.z;
+
+        minVertex.x = std::min(minVertex.x, vec.x);
+        minVertex.y = std::min(minVertex.y, vec.y);
+        minVertex.z = std::min(minVertex.z, vec.z);
+
+        maxVertex.x = std::max(maxVertex.x, vec.x);
+        maxVertex.y = std::max(maxVertex.y, vec.y);
+        maxVertex.z = std::max(maxVertex.z, vec.z);
+
+        // get the next element
+        requests[0].data += requests[0].vertexBuffer->getBytesPerElement();
+      }
+      vao->unmapAsyncTickets(requests);
+    }
+  }
+}
+
+void DrawBoundingBox(unsigned char *_data, Ogre::Vector3 &minVertex, Ogre::Vector3 &maxVertex)
+{
+  uint width = 800;
+  uint height = 600;
+
+  std::swap(minVertex.y, maxVertex.y);
+
+  std::vector<uint> x_values = {uint(minVertex.x), uint(maxVertex.x)};
+  std::vector<uint> y_values = {uint(minVertex.y), uint(maxVertex.y)};
+
+  for (uint i = minVertex.y; i < maxVertex.y; i++)
+  {
+    for (auto j : x_values)
+    {
+      auto index = (i * width + j) * 3;
+      _data[index] = 0;
+      _data[index + 1] = 255;
+      _data[index + 2] = 0;
+    }
+  }
+  for (auto i : y_values)
+  {
+    for (uint j = minVertex.x; j < maxVertex.x; j++)
+    {
+      auto index = (i * width + j) * 3;
+      _data[index] = 0;
+      _data[index + 1] = 255;
+      _data[index + 2] = 0;
+    }
+  }
+}
+
+void ConvertToScreenCoord(Ogre::Vector3 &minVertex, Ogre::Vector3 &maxVertex)
+{
+  // std::cout << "Convert " << minVertex << " " << maxVertex << std::endl;
+  uint width = 800;
+  uint height = 600;
+
+  // clip the values outside the frustum range
+  minVertex.x = std::clamp<double>(minVertex.x, -1.0, 1.0);
+  minVertex.y = std::clamp<double>(minVertex.y, -1.0, 1.0);
+  maxVertex.x = std::clamp<double>(maxVertex.x, -1.0, 1.0);
+  maxVertex.y = std::clamp<double>(maxVertex.y, -1.0, 1.0);
+  // std::cout << "Clip " << minVertex << " " << maxVertex << std::endl;
+
+  // convert from [-1, 1] range to [0, 1] range & multiply by screen dims
+  minVertex.x = uint((minVertex.x + 1.0) / 2 * width );
+  minVertex.y = uint((1.0 - minVertex.y) / 2 * height);
+  maxVertex.x = uint((maxVertex.x + 1.0) / 2 * width );
+  maxVertex.y = uint((1.0 - maxVertex.y) / 2 * height);
+
+  // std::cout << "0-1 r " << minVertex << " " << maxVertex << std::endl;
+
+  // clip outside screen boundries
+  minVertex.x = std::max<uint>(0, minVertex.x);
+  minVertex.y = std::max<uint>(0, minVertex.y);
+  maxVertex.x = std::min<uint>(maxVertex.x, width - 1);
+  maxVertex.y = std::min<uint>(maxVertex.y, height - 1);
+
+  // std::cout << "After " << minVertex << " " << maxVertex << std::endl << std::endl;
+
+}
+
 /////////////////////////////////////////////////
 void Ogre2SegmentationCamera::PostRender()
 {
@@ -561,6 +711,76 @@ void Ogre2SegmentationCamera::PostRender()
     *this->dataPtr->pixelBox,
     Ogre::RenderTarget::FB_FRONT
   );
+
+  // ============================== Bounding Box =======================
+  Ogre::Matrix4 viewMatrix = this->ogreCamera->getViewMatrix();
+  Ogre::Matrix4 projMatrix = this->ogreCamera->getProjectionMatrix();
+
+  // std::cout << "view Matrix " << viewMatrix << " " << projMatrix << std::endl;
+
+  auto itor = this->scene->OgreSceneManager()->getMovableObjectIterator(
+      Ogre::ItemFactory::FACTORY_TYPE_NAME);
+  while (itor.hasMoreElements())
+  {
+    Ogre::MovableObject *object = itor.peekNext();
+    Ogre::Item *item = static_cast<Ogre::Item *>(object);
+    Ogre::MeshPtr mesh = item->getMesh();
+
+    // get attached node
+    Ogre::Node *node = item->getParentNode();
+
+    Ogre::Vector3 position = node->getPosition();
+    Ogre::Quaternion oreintation = node->getOrientation();
+    Ogre::Vector3 scale = node->getScale();
+
+    Ogre::Aabb aabb = item->getWorldAabb();
+    Ogre::AxisAlignedBox worldAabb;
+    worldAabb.setExtents(aabb.getMinimum(), aabb.getMaximum());
+
+    if (!this->ogreCamera->isVisible(worldAabb))
+    {
+      std::cout << item->getName() << " is not visible" << std::endl;
+      itor.moveNext();
+      continue;
+    }
+
+    // this->ogreCamera.in
+    Ogre::Vector3 minVertex;
+    Ogre::Vector3 maxVertex;
+
+    MeshMinimalBox(
+      mesh,
+      viewMatrix,
+      projMatrix,
+      minVertex,
+      maxVertex,
+      position,
+      oreintation,
+      scale
+    );
+
+    if (abs(minVertex.x) > 1 && abs(maxVertex.x) > 1 ||
+        abs(minVertex.y) > 1 && abs(maxVertex.y) > 1)
+        {
+          itor.moveNext();
+          continue;
+        }
+
+    std::cout << item->getName() << std::endl << minVertex << maxVertex << std::endl;
+    ConvertToScreenCoord(minVertex, maxVertex);
+    DrawBoundingBox(this->dataPtr->buffer, minVertex, maxVertex);
+
+    itor.moveNext();
+  }
+
+    std::cout << "#" << std::endl;
+
+
+
+
+
+
+
 
   // return if no one is listening to the new frame
   if (this->dataPtr->newSegmentationFrame.ConnectionCount() == 0)
