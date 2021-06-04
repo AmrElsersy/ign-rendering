@@ -6,7 +6,9 @@
 
 ### Ignition Rendering 5.X
 
-### Ignition Rendering 5.X.X
+### Ignition Rendering 5.X.X (20XX-XX-XX)
+
+### Ignition Rendering 5.0.0 (2021-03-30)
 
 1. Add ogre2 skybox support
     * [Pull request #168](https://github.com/ignitionrobotics/ign-rendering/pull/168)
@@ -36,6 +38,7 @@
 
 1. Added Light Intensity
     * [Pull request #233](https://github.com/ignitionrobotics/ign-rendering/pull/233)
+    * [Pull request #284](https://github.com/ignitionrobotics/ign-rendering/pull/284)
 
 1. Heightmap for Ogre 1
     * [Pull request #180](https://github.com/ignitionrobotics/ign-rendering/pull/180)
@@ -45,6 +48,11 @@
 
 1. Add support for lightmaps in ogre2
     * [Pull request #182](https://github.com/ignitionrobotics/ign-rendering/pull/182)
+
+1. Documentation updates
+    * [Pull request #288](https://github.com/ignitionrobotics/ign-rendering/pull/288)
+    * [Pull request #287](https://github.com/ignitionrobotics/ign-rendering/pull/287)
+    * [Pull request #286](https://github.com/ignitionrobotics/ign-rendering/pull/286)
 
 ### Ignition Rendering 4.X
 
@@ -237,7 +245,31 @@
 
 ### Ignition Rendering 3.X.X (2021-XX-XX)
 
+### Ignition Rendering 3.5.0 (2021-05-25)
 
+1. Include MoveTo Helper class to ign-rendering
+    * [Pull request 311](https://github.com/ignitionrobotics/ign-rendering/pull/311)
+
+1. Remove tools/code_check and update codecov
+    * [Pull request 321](https://github.com/ignitionrobotics/ign-rendering/pull/321)
+
+1. Helper function to get a scene (#320)
+    * [Pull request 320](https://github.com/ignitionrobotics/ign-rendering/pull/320)
+
+1. Fix DepthGaussianNoise test (#271)
+    * [Pull request 271](https://github.com/ignitionrobotics/ign-rendering/pull/271)
+
+1. Master branch updates (#268)
+    * [Pull request 268](https://github.com/ignitionrobotics/ign-rendering/pull/268)
+
+1. 👩🌾 Make GitHub actions tests that are flaky due to display more verbose information (#255)
+    * [Pull request 255](https://github.com/ignitionrobotics/ign-rendering/pull/255)
+
+1. Fixed OBJ textures with the same name (#239)
+    * [Pull request 239](https://github.com/ignitionrobotics/ign-rendering/pull/239)
+
+1. More verbose messages when failing to load render engine (#236)
+    * [Pull request 236](https://github.com/ignitionrobotics/ign-rendering/pull/236)
 
 ### Ignition Rendering 3.4.0 (2021-02-09)
 

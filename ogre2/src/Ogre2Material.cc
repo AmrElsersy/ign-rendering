@@ -20,8 +20,13 @@
 #ifdef _MSC_VER
 #pragma warning(push, 0)
 #endif
+#include <Hlms/Pbs/OgreHlmsPbs.h>
 #include <Hlms/Pbs/OgreHlmsPbsDatablock.h>
+#include <Hlms/Unlit/OgreHlmsUnlit.h>
 #include <Hlms/Unlit/OgreHlmsUnlitDatablock.h>
+#include <OgreHlmsManager.h>
+#include <OgreMaterialManager.h>
+#include <OgreTextureManager.h>
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -36,9 +41,13 @@
 #include "ignition/rendering/ogre2/Ogre2RenderEngine.hh"
 #include "ignition/rendering/ogre2/Ogre2Scene.hh"
 
+
 /// \brief Private data for the Ogre2Material class
 class ignition::rendering::Ogre2MaterialPrivate
 {
+  /// \brief Ogre stores the name using hashes. This variable will
+  /// store the material hash name
+  public: std::string hashName;
 };
 
 using namespace ignition;
@@ -81,6 +90,39 @@ void Ogre2Material::Destroy()
     Ogre::MaterialManager &matManager = Ogre::MaterialManager::getSingleton();
     matManager.remove(this->ogreMaterial);
     this->ogreMaterial.reset();
+  }
+
+  auto &textureManager = Ogre::TextureManager::getSingleton();
+  auto iend = textureManager.getResourceIterator().end();
+  for (auto i = textureManager.getResourceIterator().begin(); i != iend;)
+  {
+    // A use count of 4 means that only RGM, RM and MeshManager have references
+    // RGM has one (this one) and RM has 2 (by name and by handle)
+    // and MeshManager keep another one int the template
+    Ogre::Resource* res = i->second.get();
+    if (i->second.useCount() == 5)
+    {
+      if (this->dataPtr->hashName == res->getName() &&
+          res->getName().find(
+            scene->Name() + "::RenderTexture") == std::string::npos)
+      {
+        Ogre2ScenePtr s = std::dynamic_pointer_cast<Ogre2Scene>(this->Scene());
+        s->ClearMaterialsCache(this->textureName);
+        this->Scene()->UnregisterMaterial(this->name);
+        if (i->second.useCount() == 4)
+        {
+          textureManager.remove(res->getHandle());
+          if (!this->textureName.empty())
+          {
+            Ogre::HlmsTextureManager *hlmsTextureManager =
+                this->ogreHlmsPbs->getHlmsManager()->getTextureManager();
+            hlmsTextureManager->destroyTexture(this->textureName);
+          }
+        }
+        break;
+      }
+    }
+    ++i;
   }
 }
 
@@ -533,6 +575,7 @@ void Ogre2Material::SetTextureMapImpl(const std::string &_texture,
   Ogre::HlmsTextureManager::TextureLocation texLocation =
       hlmsTextureManager->createOrRetrieveTexture(baseName,
       this->ogreDatablock->suggestMapTypeBasedOnTextureType(_type));
+  this->dataPtr->hashName = texLocation.texture->getName();
 
   Ogre::HlmsSamplerblock samplerBlockRef;
   samplerBlockRef.mU = Ogre::TAM_WRAP;

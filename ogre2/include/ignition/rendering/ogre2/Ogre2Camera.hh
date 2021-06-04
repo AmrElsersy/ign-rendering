@@ -91,7 +91,15 @@ namespace ignition
       public: virtual math::Matrix4d ProjectionMatrix() const override;
 
       // Documentation inherited.
+      public: virtual void SetProjectionMatrix(
+          const math::Matrix4d &_matrix) override;
+
+      // Documentation inherited.
       public: virtual math::Matrix4d ViewMatrix() const override;
+
+      // Documentation inherited.
+      public: virtual void SetProjectionType(CameraProjectionType _type)
+          override;
 
       // Documentation inherited
       public: virtual VisualPtr VisualAt(const ignition::math::Vector2i
@@ -104,6 +112,13 @@ namespace ignition
 
       // Documentation inherited.
       public: virtual unsigned int RenderTextureGLId() const override;
+
+      // Documentation inherited.
+      // TODO(anyone): this function should be virtual, declared in 'Camera'
+      // and 'BaseCamera'. We didn't do it to preserve ABI.
+      // Looks in commit history for '#SetShadowsNodeDefDirtyABI' to
+      // see changes made and revert
+      public: void SetShadowsNodeDefDirty();
 
       // Documentation inherited.
       public: virtual void Destroy() override;
