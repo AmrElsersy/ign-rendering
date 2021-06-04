@@ -40,6 +40,31 @@ using namespace rendering;
 const std::string RESOURCE_PATH =
     common::joinPaths(std::string(PROJECT_BINARY_PATH), "media");
 
+
+VisualPtr createDuck(ScenePtr _scene, int position)
+{
+  MaterialPtr red = _scene->CreateMaterial();
+  red->SetAmbient(0.0, 0.0, 0.5);
+  red->SetDiffuse(0.0, 0.0, 1.0);
+  red->SetSpecular(0.5, 0.5, 0.5);
+  red->SetShininess(50);
+  red->SetReflectivity(0);
+
+  // create a mesh
+  VisualPtr mesh = _scene->CreateVisual();
+  mesh->SetLocalPosition(position, 0, 0);
+  mesh->SetLocalRotation(1.5708, 0, 2.0);
+  MeshDescriptor descriptor;
+  descriptor.meshName = common::joinPaths(RESOURCE_PATH, "duck.dae");
+  common::MeshManager *meshManager = common::MeshManager::Instance();
+  descriptor.mesh = meshManager->Load(descriptor.meshName);
+  MeshPtr meshGeom = _scene->CreateMesh(descriptor);
+  mesh->AddGeometry(meshGeom);
+  mesh->SetMaterial(red);
+  mesh->SetUserData("label", 5);
+
+  return mesh;
+}
 //////////////////////////////////////////////////
 void buildScene(ScenePtr _scene)
 {
@@ -86,11 +111,11 @@ void buildScene(ScenePtr _scene)
 
   ////////////////////// Visuals ///////////////////////
   // create plane visual
-  // VisualPtr plane = _scene->CreateVisual("plane");
-  // plane->AddGeometry(_scene->CreatePlane());
-  // plane->SetLocalScale(5, 8, 1);
-  // plane->SetLocalPosition(3, 0, -0.5);
-  // root->AddChild(plane);
+  VisualPtr plane = _scene->CreateVisual("plane");
+  plane->AddGeometry(_scene->CreatePlane());
+  plane->SetLocalScale(5, 8, 1);
+  plane->SetLocalPosition(3, 0, -0.5);
+  root->AddChild(plane);
 
   // create a mesh
   VisualPtr mesh = _scene->CreateVisual();
@@ -103,7 +128,7 @@ void buildScene(ScenePtr _scene)
   MeshPtr meshGeom = _scene->CreateMesh(descriptor);
   mesh->AddGeometry(meshGeom);
   mesh->SetMaterial(yellow);
-  mesh->SetUserData("label", 5);
+  mesh->SetUserData("label", 50);
   root->AddChild(mesh);
 
   // create a box
@@ -113,7 +138,7 @@ void buildScene(ScenePtr _scene)
   GeometryPtr boxGeom = _scene->CreateBox();
   box->AddGeometry(boxGeom);
   box->SetMaterial(green);
-  box->SetUserData("label", 2);
+  box->SetUserData("label", 120);
   root->AddChild(box);
 
   // create a box
@@ -123,7 +148,7 @@ void buildScene(ScenePtr _scene)
   GeometryPtr boxGeom2 = _scene->CreateBox();
   box2->AddGeometry(boxGeom2);
   box2->SetMaterial(green);
-  box2->SetUserData("label", 2);
+  box2->SetUserData("label", 120);
   root->AddChild(box2);
 
   // create a sphere
@@ -132,7 +157,7 @@ void buildScene(ScenePtr _scene)
   GeometryPtr sphereGeom = _scene->CreateSphere();
   sphere->AddGeometry(sphereGeom);
   sphere->SetMaterial(red);
-  sphere->SetUserData("label", 3);
+  sphere->SetUserData("label", 130);
   root->AddChild(sphere);
 
   // create a sphere2
@@ -141,25 +166,24 @@ void buildScene(ScenePtr _scene)
   GeometryPtr sphereGeom2 = _scene->CreateSphere();
   sphere2->AddGeometry(sphereGeom2);
   sphere2->SetMaterial(red);
-  sphere2->SetUserData("label", 3);
+  sphere2->SetUserData("label", 130);
   root->AddChild(sphere2);
 
   // create camera
   SegmentationCameraPtr camera = _scene->CreateSegmentationCamera("camera");
   camera->SetLocalPosition(0.0, 0.0, 0.5);
   camera->SetLocalRotation(0.0, 0.0, 0.0);
-  // camera->SetWorldPosition(0,0,0);
-  // camera->SetWorldRotation(0,0,0);
   camera->SetImageWidth(800);
   camera->SetImageHeight(600);
   camera->SetImageFormat(PixelFormat::PF_R8G8B8);
-  // camera->SetFarClipPlane(100);
-  // camera->SetNearClipPlane(1.0);
   camera->SetAspectRatio(1.333);
   camera->SetHFOV(IGN_PI / 2);
-  camera->EnableColoredMap(true);
-  camera->SetSegmentationType(SegmentationType::Semantic);
+  // camera->EnableColoredMap(true);
+  camera->SetSegmentationType(SegmentationType::BoundingBoxes);
   root->AddChild(camera);
+
+  // for (int i = 0; i < 30; i++)
+  //   root->AddChild(createDuck(_scene, i));
 }
 
 //////////////////////////////////////////////////

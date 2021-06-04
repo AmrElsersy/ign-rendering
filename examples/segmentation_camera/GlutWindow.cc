@@ -151,7 +151,7 @@ void handleMouse()
   {
     // 251, 137
     // 495, 369
-    std::cout << g_mouse.x << ", " << g_mouse.y << std::endl;
+    // std::cout << g_mouse.x << ", " << g_mouse.y << std::endl;
 
 
     g_mouse.buttonDirty = false;

@@ -28,9 +28,12 @@
 /// have the same color & id.
 /// Panoptic: Pixels of same label from different items,have different
 /// color & id. 1 channel for label id & 2 channels for instance id
+/// BoundingBox: Generates array of bounding boxes each one is 5 values
+/// (label, minX, minY, maxX, maxY)
 enum SegmentationType {
   Semantic,
-  Panoptic
+  Panoptic,
+  BoundingBoxes
 };
 
 namespace ignition
