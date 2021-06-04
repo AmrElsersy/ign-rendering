@@ -128,6 +128,10 @@ namespace ignition
       /// \return Pointer to the render target
       protected: virtual RenderTargetPtr RenderTarget() const override;
 
+      private: void FullBoundingBoxes();
+
+      private: void VisibleBoundingBoxes();
+
       /// \brief Pointer to the ogre camera
       protected: Ogre::Camera *ogreCamera;
 

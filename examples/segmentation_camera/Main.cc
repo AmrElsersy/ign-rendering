@@ -179,7 +179,7 @@ void buildScene(ScenePtr _scene)
   camera->SetAspectRatio(1.333);
   camera->SetHFOV(IGN_PI / 2);
   // camera->EnableColoredMap(true);
-  camera->SetSegmentationType(SegmentationType::BoundingBoxes);
+  camera->SetSegmentationType(SegmentationType::FullBoundingBoxes);
   root->AddChild(camera);
 
   // for (int i = 0; i < 30; i++)

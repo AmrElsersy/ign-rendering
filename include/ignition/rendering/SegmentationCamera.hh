@@ -33,7 +33,8 @@
 enum SegmentationType {
   Semantic,
   Panoptic,
-  BoundingBoxes
+  BoundingBoxes,
+  FullBoundingBoxes
 };
 
 namespace ignition
